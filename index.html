@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Escalation &amp; CAPA Register</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+  #root { min-height: 100vh; }
+  #boot-error { display:none; max-width:640px; margin:60px auto; font-family:system-ui,sans-serif; color:#7a2222; padding:0 16px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="boot-error">
+  <h2>This file needs an internet connection</h2>
+  <p>It loads React and Babel from a CDN the first time you open it. Please check your connection and reload.</p>
+</div>
+<script type="text/plain" id="app-source">
+const { useState, useEffect, useMemo, useCallback } = React;
+
+/* Lightweight inline icon set — replaces the lucide-react import so this file
+   can run directly in any browser with no build step or npm install. */
+function Plus({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>);
+}
+function ArrowLeft({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>);
+}
+function ArrowRight({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>);
+}
+function Check({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12" /></svg>);
+}
+function AlertTriangle({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 2 L22 20 L2 20 Z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>);
+}
+function RefreshCw({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 1 1-3-6.7" /><polyline points="21 3 21 9 15 9" /></svg>);
+}
+function Trash2({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></svg>);
+}
+function X({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>);
+}
+function ClipboardList({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="6" y="3" width="12" height="4" rx="1" /><path d="M6 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="8" y1="16" x2="16" y2="16" /><line x1="8" y1="8" x2="12" y2="8" /></svg>);
+}
+function Search({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>);
+}
+function Sparkles({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2z" /><path d="M19 14l.7 2.3L22 17l-2.3.7L19 20l-.7-2.3L16 17l2.3-.7L19 14z" /></svg>);
+}
+function Loader2({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>);
+}
+function Pencil({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>);
+}
+function ChevronDown({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9" /></svg>);
+}
+function Info({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>);
+}
+function Link2({ size = 16, className = '' }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 17H7A5 5 0 0 1 7 7h2" /><path d="M15 7h2a5 5 0 1 1 0 10h-2" /><line x1="8" y1="12" x2="16" y2="12" /></svg>);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Constants                                                              */
+/* ---------------------------------------------------------------------- */
+
+const STORAGE_KEY = 'escalation-register-cases';
+
+const CATEGORIES = ['Appraisal Management', 'Order Management'];
+const SEVERITIES = ['Low', 'Medium', 'High', 'Critical'];
+const STATUSES = ['Open', 'RCA in progress', 'CAPA in progress', 'Closed'];
+
+const PROCESS_STEPS = [
+  'Order intake & setup',
+  'Appraiser assignment',
+  'Scheduling',
+  'Inspection',
+  'Appraisal review / QC',
+  'Report delivery',
+  'Revision / rebuttal handling',
+  'Billing / invoicing',
+  'Client communication',
+  'Status update / turnaround tracking',
+  'Other',
+];
+
+const ROOT_CAUSE_CATEGORIES = [
+  'Knowledge / training gap',
+  'Process not followed (SOP deviation)',
+  'Process gap (no SOP exists)',
+  'System / tool limitation',
+  'Internal communication breakdown',
+  'Client communication breakdown',
+  'Workload / bandwidth',
+  'Vendor / appraiser error',
+  'Data entry error',
+  'Client-provided information issue',
+  'Other',
+];
+
+const UNDERSTOOD_OPTIONS = ['Yes', 'Partially', 'No'];
+
+const STOPWORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'but', 'of', 'to', 'in', 'on', 'for', 'with',
+  'was', 'is', 'are', 'were', 'be', 'been', 'it', 'this', 'that', 'as', 'at',
+  'by', 'from', 'has', 'have', 'had', 'not', 'no', 'client', 'order', 'appraisal',
+  'report', 'issue', 'case', 'error', 'due', 'their', 'they', 'them', 'we', 'our',
+  'his', 'her', 'she', 'he', 'you', 'your', 'i', 'about', 'into', 'out', 'up',
+]);
+
+const WIZARD_STEPS = [
+  { title: 'Escalation details' },
+  { title: 'Understanding the error' },
+  { title: 'Repetition check' },
+  { title: 'Immediate action' },
+  { title: 'Corrective & preventive action' },
+  { title: 'Verification' },
+  { title: 'Review & save' },
+];
+
+/* ---------------------------------------------------------------------- */
+/* Helpers                                                                */
+/* ---------------------------------------------------------------------- */
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T00:00:00');
+  if (isNaN(dt.getTime())) return d;
+  return dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function formatDateTime(iso) {
+  if (!iso) return '—';
+  const dt = new Date(iso);
+  if (isNaN(dt.getTime())) return iso;
+  return dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) +
+    ', ' + dt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
+function blankCase(seq) {
+  const now = new Date();
+  return {
+    id: 'c_' + now.getTime() + '_' + Math.random().toString(36).slice(2, 7),
+    caseNumber: `ESC-${now.getFullYear()}-${String(seq).padStart(4, '0')}`,
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+    status: 'Open',
+    clientName: '',
+    orderId: '',
+    category: CATEGORIES[0],
+    severity: 'Medium',
+    dateReceived: todayStr(),
+    description: '',
+    reportedBy: '',
+    rca: {
+      processStepFailed: PROCESS_STEPS[0],
+      involvedPerson: '',
+      understoodMistake: 'Yes',
+      understoodNotes: '',
+      missReasonCategory: ROOT_CAUSE_CATEGORIES[0],
+      why1: '',
+      why2: '',
+      why3: '',
+      why4: '',
+      why5: '',
+      isRepetitive: false,
+      linkedCaseIds: [],
+    },
+    immediateAction: '',
+    capa: {
+      correctiveAction: '',
+      correctiveOwner: '',
+      correctiveDueDate: '',
+      preventiveAction: '',
+      preventiveOwner: '',
+      preventiveDueDate: '',
+      verificationPlan: '',
+      verificationDate: '',
+      verified: false,
+    },
+    aiNarrative: '',
+    complianceReference: '',
+    additionalNotes: '',
+  };
+}
+
+function tokenize(str) {
+  return (str || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOPWORDS.has(w));
+}
+
+function jaccard(aArr, bArr) {
+  const a = new Set(aArr);
+  const b = new Set(bArr);
+  if (a.size === 0 || b.size === 0) return 0;
+  let inter = 0;
+  a.forEach((w) => { if (b.has(w)) inter += 1; });
+  const union = new Set([...a, ...b]).size;
+  return union === 0 ? 0 : inter / union;
+}
+
+function findMatches(draft, allCases) {
+  const draftTokens = tokenize(draft.description);
+  return allCases
+    .filter((c) => c.id !== draft.id)
+    .map((c) => {
+      let score = jaccard(draftTokens, tokenize(c.description));
+      if (c.category === draft.category) score += 0.1;
+      if (c.rca && draft.rca && c.rca.processStepFailed === draft.rca.processStepFailed) score += 0.2;
+      return { caseObj: c, score };
+    })
+    .filter((r) => r.score > 0.18)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Auto RCA/CAPA generator — grounded in the team's real historical RCAs   */
+/* ---------------------------------------------------------------------- */
+
+// A curated cross-section of the team's actual closed RCA/CAPA entries, spanning the
+// most common issue types. Used as few-shot grounding so the generator's phrasing,
+// specificity and structure match the existing log rather than reading as generic AI text.
+const FEWSHOT_LIBRARY = [
+  {
+    issueType: "Data Entry Error",
+    description: "assigned a Texas order to Steve Weller in the West Connect.",
+    whys: ["The user did not verify the correct regional ownership before submitting the assignment.", "The system allowed manual assignment without validation or warning prompts."],
+    rootCause: "lack of assignment validation in West Connect caused a Texas order to be assigned to the wrong resource.",
+    contributingFactors: ["Lack of mandatory validation preventing out-of-region assignments.", "User oversight during order processing."],
+    correctiveActions: ["Communicated the issue to the concerned user", "Verified no other incorrect assignments were made during the same period."],
+    preventiveActions: [],
+  },
+  {
+    issueType: "Incorrect Assignment",
+    description: "Entered Loan # into borrowers name and fee of $525 instead of $675",
+    whys: ["Manual data entry was completed without adequate verification before submission.", "lack of awareness"],
+    rootCause: "The error occurred due to manual data entry oversight during order creation/update, where field verification was not completed before submission.",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["Conduct refresher training on order data entry accuracy.", "Perform periodic quality audits on newly created orders."],
+  },
+  {
+    issueType: "Missed Process Steps",
+    description: "He marked the message as read but did not update the COR as expected nor did he mark the order with a blue flag for me to do it",
+    whys: ["user marked the message as read but did not complete the required follow-up actions.", "post-process verification was missed."],
+    rootCause: "This was a new scenario the user has faced this first time we have addressed this with the user and advised what needs to be done",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["User has been guided on how to handle the CDOR related concerns."],
+  },
+  {
+    issueType: "Incorrect Assignment",
+    description: "Special care notes for GoSource to not work the Built files/special care updated on 5/1",
+    whys: ["lack of awareness", "post-process verification was missed."],
+    rootCause: "user failed to review or follow the updated special care notes before assigning/processing the order, resulting in non-compliance with documented handling instructions.",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["Users are advised to focus more on the special care stars instead of following up on the orders directly."],
+  },
+  {
+    issueType: "Communication Breakdown",
+    description: "There is a vendor comment that was marked as read but was not addressed correctly.",
+    whys: ["The user overlooked or misunderstood the required response after reviewing the comment.", "Communication follow-up risks were not fully addressed"],
+    rootCause: "The assigned user reviewed and marked the vendor comment as read but failed to properly interpret or execute the required follow-up action associated with the communication.",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["Conduct refresher training on vendor communication management and follow-up expectations."],
+  },
+  {
+    issueType: "Missed Process Steps",
+    description: "They cleared an appraisers message without adding a blue flag for the ASM or sending a message to the ASM this needs to be worked.",
+    whys: ["user marked the message as read but did not complete the required follow-up actions.", "post-process verification was missed."],
+    rootCause: "The issue occurred due to human error and process non-compliance. The user marked the message as read without completing the mandatory follow-up workflow steps.",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["Reinforce process compliance through targeted coaching and periodic refresher training sessions.", "Share process reminders with the team."],
+  },
+  {
+    issueType: "Missed Process Steps",
+    description: "BPO completed report was within FD tickets 426576 and not uploaded to the order. Ticket was closed out",
+    whys: ["The user overlooked this requirement while processing the ticket.", "The user did not thoroughly review all required steps before closing the ticket.", "Due to a lapse in attention and process compliance."],
+    rootCause: "The user failed to follow the required process steps and closed the ticket without uploading the completed report to the order.",
+    contributingFactors: [],
+    correctiveActions: ["Reviewed the ticket and ensured all required steps were completed.", "Provided coaching to the associate on following the process correctly."],
+    preventiveActions: ["Reminded the user to verify all steps before closing tickets.", "Reinforced process requirements during team discussions.", "Conduct periodic refresher sessions on process compliance."],
+  },
+  {
+    issueType: "Missed Process Steps",
+    description: "Completed report was within ticket 426538 and not uploaded to the order or blue flagged for notification of completion",
+    whys: ["The user focused on completing the report but overlooked the post-completion actions.", "The user did not thoroughly review all required steps before closing the ticket.", "Due to a lapse in attention and process compliance."],
+    rootCause: "The User did not follow the complete process after finishing the report, resulting in the report not being uploaded to the order and the order not being blue flagged for completion notification.",
+    contributingFactors: [],
+    correctiveActions: ["Reviewed the ticket and provided coaching to the associate on completing all required process steps."],
+    preventiveActions: ["Reinforced process requirements during team huddles.", "Conduct refresher coaching on end-to-end process compliance."],
+  },
+  {
+    issueType: "Did not Escalate",
+    description: "Completed report was uploaded but the order did not have a blue flag",
+    whys: ["The user missed the blue flag step after uploading the report.", "Due to a lapse in attention and process compliance."],
+    rootCause: "The user uploaded the completed report but failed to add the required blue flag, resulting in the completion not being properly escalated/notified.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the associate on the importance of completing all escalation steps."],
+    preventiveActions: ["Conduct refresher coaching on end-to-end process compliance.", "Increase quality checks on similar transactions to ensure escalation steps are completed."],
+  },
+  {
+    issueType: "Did not Escalate",
+    description: "Report uploaded/no blue flag added to the order",
+    whys: ["The user missed the blue flag step after uploading the report.", "Due to a lapse in attention and process compliance."],
+    rootCause: "The user uploaded the completed report but failed to add the required blue flag, resulting in the completion not being properly escalated/notified.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the associate on the importance of completing all escalation steps."],
+    preventiveActions: ["Conduct refresher coaching on end-to-end process compliance.", "Increase quality checks on similar transactions to ensure escalation steps are completed."],
+  },
+  {
+    issueType: "Missed SLA",
+    description: "Orders are taking about 2-3 hours to get created as per our prior agreement order needs to be created within 1 hr",
+    whys: ["The user failed to prioritize the order based on the agreed turnaround time.", "Due to inadequate adherence to the order processing workflow and SLA requirements."],
+    rootCause: "The order creation exceeded the agreed SLA of 1 hour due to delayed processing and failure to prioritize order creation within the required turnaround time.",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["Conduct refresher training on SLA requirements and order prioritization.", "Increase monitoring and quality audits of order creation turnaround times.", "Implement regular queue reviews and SLA tracking to ensure new orders are created within the agreed 1-hour timeframe."],
+  },
+  {
+    issueType: "Unwanted Escalation",
+    description: "Hello, per the special care instructions, GoSource is not supposed to work these orders. Thank you!",
+    whys: ["The User did not follow the special care instructions.", "The User did not thoroughly validate the order requirements before processing."],
+    rootCause: "The user failed to review and follow the special care instructions, resulting in the order being worked and unnecessarily escalated by GoSource.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the associate on reviewing special care notes before taking action."],
+    preventiveActions: ["Remind associates to verify order-specific instructions before escalating or taking action.", "Increase quality monitoring on similar cases to ensure compliance with special care notes."],
+  },
+  {
+    issueType: "Incorrect Assignment",
+    description: "Go Source should not be marking messages \"read\" or working any compliance related messages. In this situation, Austin marked a message \"read\" that was being sent from our NAN Internal Team member to our compliance team.",
+    whys: ["Due to a lapse in attention and process compliance.", "did not fully follow the message handling guidelines and scope of work."],
+    rootCause: "The User marked a compliance-related message as \"Read\" due to a lapse in attention and non-adherence to the defined message handling process and scope of work.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching on message handling guidelines and reinforced that compliance-related messages must not be marked as \"Read\" or worked by Go Source."],
+    preventiveActions: ["Conduct refresher training on scope of work and message handling.", "Increase quality checks on message transactions to ensure compliance-related messages remain untouched."],
+  },
+  {
+    issueType: "Delayed Status Update",
+    description: "GS should have read the order, POC information was already available to NAN and could have been provided to the appraiser directly",
+    whys: ["The user overlooked the available information while processing the order.", "Due to a lapse in attention and process compliance."],
+    rootCause: "The associate failed to review the order details thoroughly before updating the status.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the associate on thoroughly reviewing order details before processing and ensuring all available information is utilized before updating the status."],
+    preventiveActions: [],
+  },
+  {
+    issueType: "Incorrect Action Taken",
+    description: "appraiser requested a trip fee and no action was taken on this request",
+    whys: ["The user overlooked the appraiser's request.", "The user did not thoroughly review and process the appraiser's communication.", "The user failed to follow the required request handling process."],
+    rootCause: "The User failed to act on the appraiser's trip fee request due to a lapse in attention and non-adherence to the required request handling process",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the associate on thoroughly reviewing appraiser communications and ensuring all requests, including trip fee requests, are addressed in accordance with the process."],
+    preventiveActions: ["Conduct refresher training on handling appraiser requests and required action steps."],
+  },
+  {
+    issueType: "Incorrect Action Taken",
+    description: "Here is another one a new order in Assigned status, orders should be in accepted by vendor, this is also happening often",
+    whys: ["The user overlooked the required status change during order processing.", "The user did not fully follow the order processing workflow.", "The User did not verify the final order status before completing the transaction."],
+    rootCause: "The user created/processed the new order in Assigned status instead of updating it to Accepted by Vendor, due to a lapse in attention and non-adherence to the required order status workflow.",
+    contributingFactors: [],
+    correctiveActions: ["Reinforced the importance of verifying the final order status before completing order processing."],
+    preventiveActions: ["Conduct refresher training on order status management and end-to-end order processing guidelines."],
+  },
+  {
+    issueType: "Incorrect Action Taken",
+    description: "The city is wrong and the appraiser is wrong & AMC is wrong",
+    whys: ["The user did not verify the order details before submission.", "The user did not fully follow the required verification process.", "Due to a lapse in attention while processing the order.", "A final review of the order details was not performed before completion."],
+    rootCause: "The User entered incorrect order details (city, appraiser, and AMC) due to a lapse in attention and failure to verify the information before processing the order.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the associate on accurately validating all critical order details (city, appraiser, and AMC) before submitting the order."],
+    preventiveActions: ["Conduct refresher training on order data validation and verification procedures.", "Increase quality audits focusing on critical data fields such as city, appraiser, and AMC"],
+  },
+  {
+    issueType: "Incorrect Assignment",
+    description: "This borrower does have an active bulk going on however this order is not a bulk as it is a one of and the only order in a seperate state with only 1 order needed",
+    whys: ["Due to a lapse in attention and non-adherence to the assignment process.", "A final validation check was not completed before assigning the order."],
+    rootCause: "The user incorrectly assigned the order as part of a bulk request, even though it was a standalone order in a different state. This occurred due to a lapse in order review and failure to validate bulk criteria before assignment.",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: [],
+  },
+  {
+    issueType: "Missed Process Steps",
+    description: "This was auto-assigned, and when Go Source followed up with the appraiser, they should have flipped the Show Additional Comments to Vendor to YES so that the appraiser would have access to the Commentary that is needed on the 203k.",
+    whys: ["The associate did not fully follow the process checklist for handling auto-assigned orders and appraiser communication.", "Due to a lapse in attention and incomplete verification of required actions before completion."],
+    rootCause: "The user missed updating the \"Show Additional Comments to Vendor\" field to YES while following up with the appraiser, resulting in the appraiser not having access to the required 203k commentary. This occurred due to a lapse in attention and non-adherence to the required process steps.",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: [],
+  },
+  {
+    issueType: "Missed Process Steps",
+    description: "On 7/24/26 at 04:43:12 pm, the client asked us to place the order on hold. I therefore placed the order on hold on the same day at 6:44:25 pm. While it is acknowledged that the appraiser did submit their inspection date on 7/26 (after previously updating a prior inspection date on 7/24), they also added a note to the order which stated the inspection date was past the due date on the order, with the explanation that the order has been placed on hold by client and no inspection has taken place as of yet. The Go Source rep did not read through the notes to notice that the order had been placed on hold by the client and they sent a message to the appraiser asking that they provide the ETA for the report due to the inspection date being 7/31 compared to the current due date of 7/28. The client had not stated to take the order off hold at that point, so even though the appraiser provided the inspection date, the hold request in the order and notes from the client and myself should have alerted the rep that the order was still on hold and the response to the appraiser should have reflected that.",
+    whys: ["THe user did not recognize that the order was still on hold when reviewing the updated inspection date and responding to the appraiser.", "The use did not thoroughly review the order notes and prior communication"],
+    rootCause: "The root cause was a lapse in process adherence and attention to detail. The representative did not review the complete order history and notes before responding to the appraiser, resulting in the existing client hold status being overlooked and an unnecessary ETA request being sent.",
+    contributingFactors: [],
+    correctiveActions: ["Reviewed the order and confirmed that the client had requested the order to remain on hold.", "Provided coaching to the representative on reviewing the complete order history, client notes, and current order status before taking action."],
+    preventiveActions: ["Reinforced the requirement to review all relevant order notes, client instructions, and status updates before responding to external parties.", "Reminded the team to verify the current order status whenever there is a discrepancy between the inspection date and order due date."],
+  },
+  {
+    issueType: "Guideline Non-Compliance",
+    description: "The team member adjusted the client due date to 08/08 which is a Saturday. We had to go back and adjust again to the following Monday 08/10.",
+    whys: ["The user selected the calendar date without verifying whether it fell on a business day.", "There was a lapse in adherence to the established guideline and insufficient attention to detail when finalizing the due date."],
+    rootCause: "The root cause was guideline non-compliance and insufficient date verification. The team member did not validate that the adjusted client due date fell on a valid business day before completing the update.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the team member on the applicable guideline for selecting client due dates.", "Reinforced the importance of verifying the day of the week before finalizing any due-date adjustment."],
+    preventiveActions: ["Reminded team members to validate adjusted due dates against weekends and applicable non-business days before saving changes.", "Conduct refresher coaching on due-date handling and guideline compliance."],
+  },
+  {
+    issueType: "Missed Deadline",
+    description: "Orders are supposed to be created within 2 hours at the most preferably within an hour, not 5 hours",
+    whys: ["The order was not prioritized and processed within the expected turnaround time. Why was it not prioritized appropriately?", "The user did not infromed that he was working on other task"],
+    rootCause: "The root cause was a lapse in process adherence and timely monitoring of pending orders. The team member did not create the order within the established 2-hour maximum timeframe, resulting in a 5-hour delay. Insufficient attention to the order queue and failure to prioritize the pending order contributed to the missed deadline.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the team member on the established order-creation SLA and the expectation to create orders preferably within 1 hour and no later than 2 hours."],
+    preventiveActions: ["Reinforced the requirement to monitor the order queue regularly and ensure all new orders are addressed within the established SLA."],
+  },
+  {
+    issueType: "Fee/Billing Issue",
+    description: "The hold should not have been lifted. We were still pending a fee update from the appr",
+    whys: ["There was a lapse in following the process for validating all outstanding items before changing the order status.", "insufficient attention to the pending fee update and failure to verify that all hold conditions had been satisfied before removing the hold."],
+    rootCause: "The root cause was a lapse in process adherence and insufficient verification of the pending fee update. The representative lifted the order hold without confirming that the appraiser had provided the required fee update. This resulted in the order being taken off hold prematurely while the billing issue remained unresolved.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the representative on the proper process for managing orders placed on hold due to pending fee/billing updates."],
+    preventiveActions: ["Conduct refresher coaching on hold management and fee/billing procedures to prevent premature status changes."],
+  },
+  {
+    issueType: "Data Entry Error",
+    description: "Did not add Liz to the additional client's email",
+    whys: ["THe user overlooked the additional client's contact information while updating the order."],
+    rootCause: "The root cause was a data-entry oversight caused by insufficient verification of client contact information. The representative did not thoroughly review the additional client details before finalizing the order, resulting in Liz being omitted from the email communication.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the representative on accurately capturing and updating all client contact information."],
+    preventiveActions: ["Reminded team members to cross-check the order details against the source/request before finalizing communication."],
+  },
+  {
+    issueType: "Missing Documentation",
+    description: "Sent out revision request but didnt check boxes to share the HOA documents with the appraiser?",
+    whys: ["The user overlooked the document-sharing option while submitting the revision request.", "The final verification step was not consistently followed when sending revision requests with supporting documentation."],
+    rootCause: "The root cause was a process adherence and attention-to-detail gap. The representative submitted the revision request without selecting the required option to share the HOA documents with the appraiser. The supporting documents were available, but the required document-sharing checkbox was not selected before the request was sent.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the representative on the proper process for sending revision requests with supporting documentation."],
+    preventiveActions: ["Encourage team members to pause and verify the request details whenever supporting documentation is referenced in the order."],
+  },
+  {
+    issueType: "Data Entry Error",
+    description: "Paddy entered the order with the job type \"FHA - 1004 w/ 216 & 1007\" and there was no 216 or 1007 communicated in the quote request from the client.",
+    whys: ["The quote request details were not thoroughly reviewed and compared against the selected job type before the order was submitted", "The root cause was a lapse in attention to detail and adherence to the order-entry verification process."],
+    rootCause: "The root cause was a data-entry error resulting from insufficient verification of the client's quote request. The representative entered the job type as \"FHA - 1004 w/ 216 & 1007\" even though the client did not communicate a requirement for forms 216 or 1007. The job type was not cross-checked against the client's original instructions before the order was finalized.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the representative on accurately interpreting client instructions when selecting the applicable job type."],
+    preventiveActions: ["Reinforced the requirement to review the complete quote request before selecting a job type."],
+  },
+  {
+    issueType: "Data Entry Error",
+    description: "This order was entered with the client as PennyMac and it was actually a Consumer request",
+    whys: ["The user did not sufficiently verify the request details and source before selecting the client."],
+    rootCause: "The root cause was a data-entry error resulting from insufficient verification of the request type and client information. The representative incorrectly identified the request as a PennyMac order when it was actually a Consumer request. The request details were not adequately reviewed and validated before the client information was entered and the order was finalized.",
+    contributingFactors: [],
+    correctiveActions: ["Provided coaching to the representative on accurately identifying the request type and applicable client before creating an order."],
+    preventiveActions: ["Implement a final verification step to confirm the request type and client selection against the source request."],
+  },
+  {
+    issueType: "Missing Documentation",
+    description: "Order was not blue flagged for follow up by the NTPS team as Vendor requested additional information",
+    whys: ["The vendor communication was not thoroughly reviewed and translated into the appropriate order action.", "here was a lapse in following the established process for identifying and flagging orders when additional information is requested by the vendor."],
+    rootCause: "The root cause was a lapse in process adherence and insufficient review of vendor communication. The vendor requested additional information, which required the order to be blue flagged for NTPS follow-up. However, the request was not identified and acted upon appropriately, resulting in the order not being flagged for the required follow-up.",
+    contributingFactors: [],
+    correctiveActions: ["Reinforced the requirement to blue flag orders when vendors request additional information or action from the NTPS team."],
+    preventiveActions: ["Implement a final review step to verify that all vendor requests requiring internal action have been appropriately documented and flagged."],
+  },
+  {
+    issueType: "Incorrect Action Taken",
+    description: "Tim placed an order on hold and asked the client to provide us with OUR short term rental form. The AP requested it via email office. This should have been escalated to NAN Team for assistance as we do not handle anything related to STR.",
+    whys: ["This was happened due to not follwoing the SOP/confused with this scenario in SOP", "It may also happned if the user completely ignore this point/forgot about this point", "Because there is a lack of clear communication or reinforcement regarding which team handles STR cases."],
+    rootCause: "Insufficient SOP Reinforcement SOPs are not consistently reinforced through training, leading to confusion in exception scenarios.",
+    contributingFactors: [],
+    correctiveActions: ["(Immediate)", "Redirect the case to the NAN Team for proper handling", "Provide immediate feedback/coaching to the user", "Send a team-wide reminder on STR handling and escalation process"],
+    preventiveActions: ["(Long-Term)", "SOP Enhancement", "Update SOPs with clear ownership and STR escalation steps (with examples)", "Training & Refreshers", "Conduct regular training sessions focused on exception scenarios", "Escalation Matrix Visibility", "Create a quick-reference guide/cheat sheet for escalation handling"],
+  },
+  {
+    issueType: "Communication Breakdown",
+    description: "Didnt escalate to the user",
+    whys: ["The issue might have been incorrectly assumed to be minor or resolvable internally, so escalation was deemed unnecessary.", "Escalation process not standardized and centralized", "The person handling the issue simply overlooked the need to escalate\u2014common during high workload or multitasking"],
+    rootCause: "Oversight / Missed Attention (Human Error) The issue was not escalated due to an unintentional oversight by the handler. While managing multiple tasks, the requirement to escalate this specific issue was missed.",
+    contributingFactors: ["High workload / multitasking", "Lack of tracking or reminder mechanism", "Impact:", "Delay in escalation to the user", "Reduced response efficiency"],
+    correctiveActions: [],
+    preventiveActions: ["Introduce task tracking or alert systems", "Implement escalation checklists", "Balance workload and prioritize critical issues"],
+  },
+  {
+    issueType: "Delayed Revision Sent",
+    description: "Client request to update a DU Case file ID or LPA key once the report has been completed requires a revision request to be sent to our Vendor via the NTPS team",
+    whys: ["Because there has been limited awareness, training, and system enforcement regarding the importance of accurate DU Case IDs / LPA keys.", "Users may not fully understand the criticality of DU Case IDs / LPA keys and the downstream impact of missing or incorrect data."],
+    rootCause: "Root Causes Lack of Awareness Users are not fully aware of the importance of accurate DU Case IDs / LPA Keys at the time of initial data entry.",
+    contributingFactors: [],
+    correctiveActions: ["(Short-Term Fixes)", "Immediate Awareness Communication", "Send out advisory highlighting:", "Importance of DU Case ID / LPA Key accuracy.", "Impact of post-completion changes.", "Share real examples of delays caused.", "Targeted Training Sessions", "Conduct quick refresher training for all users.", "Include step-by-step guidance and common error scenarios."],
+    preventiveActions: [],
+  },
+  {
+    issueType: "Communication Breakdown",
+    description: "\"Rose mentioned the report will be submitted now",
+    whys: ["Lack of clarity or awareness of the importance of specifying exact dates.", "Informal or casual communication style may be preferred by the team but is insufficient for tracking deliverables."],
+    rootCause: "The report submission update from Rose stated \"will be submitted now\" instead of specifying a date. The root cause appears to be a combination of unclear communication practices and absence of a standard protocol requiring exact timelines.",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["(Long-Term):", "Implement a standardized reporting template requiring all updates to include a submission date confirmed by the appraiser.", "Train team members on precise and unambiguous status reporting."],
+  },
+  {
+    issueType: "Missing Documentation",
+    description: "ROV Document missed by user",
+    whys: ["Possible contributing factors: unfamiliarity with the portal interface, high workload, or miscommunication", "Lack of clear workflow or checklist for document", "No checklist followed"],
+    rootCause: "The missed ROV document can be attributed to the following root causes: User Unfamiliarity with Portal Interface The user may not have been fully trained or comfortable navigating the system, leading to oversight of required document uploads. High Workload / Task Overload Excessive workload or competing priorities may have caused the user to unintentionally skip the document submission step.",
+    contributingFactors: [],
+    correctiveActions: ["Actions to address the current issue:", "Immediate Document Submission", "Ensure the missed ROV document is uploaded and verified.", "User Notification & Clarification", "Communicate with the concerned user to clarify requirements and expectations.", "Short Refresher Training", "Provide quick guidance or demo on portal usage to the user."],
+    preventiveActions: [],
+  },
+  {
+    issueType: "Data Entry Error",
+    description: "Please ensure we double check all messages we are sending to the client as you messaged the client their own request",
+    whys: ["Logged in wrong field", "lack of awareness", "QC Sampling not done"],
+    rootCause: "The client received their own request because the outgoing message was sent without proper verification, allowing unreviewed content to be delivered.",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["(Long-term):", "Implement a mandatory review step for all client communications before sending.", "Introduce a pre-send checklist to ensure accuracy, including verification of attached documents or references.", "Conduct a team training session on proper communication workflow and data handling."],
+  },
+  {
+    issueType: "Incorrect Action Taken",
+    description: "Uploaded wrong order page",
+    whys: ["Not verifiying after uploading the document", "multiple documents stored in the folder", "Lack of a verification/check process before publishing"],
+    rootCause: "wrong order page was uploaded on the portal. This led to potential user confusion and could have caused order processing errors. Immediate correction was required to ensure accurate information availability. . Root Cause Analysis (RCA) Category Findings Human Error Staff uploaded incorrect document/page Process Gap No verification/approval step for uploads System Limitation No automated preview or alert for wrong uploads",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: [],
+  },
+  {
+    issueType: "Delayed Status Update",
+    description: "1. The client was given the incorrect due date as Austin gave the client the appraiser's due date to deliver to NAN on 4/6 and not the client's which was 4/8. 2. Austin placed the special care and sent out emails pertaining to the hold-delayed inspection but, never placed the order on hold",
+    whys: ["Does not followed the steps required", "Does not cross check the dates with order page"],
+    rootCause: "Lack of checklist or system prompts to ensure all steps are completed. Incorrect Client Due Date:",
+    contributingFactors: [],
+    correctiveActions: ["Immediately notify the client of the correct due date (4/8) and clarify any confusion."],
+    preventiveActions: ["Implement a standardized due date verification process. Before sending any due date to a client, confirm the actual client-facing due date versus internal appraiser deadlines. This can include a mandatory step or checklist in the workflow to prevent miscommunication."],
+  },
+  {
+    issueType: "Delayed Status Update",
+    description: "We received a cancellation notice on this on 3/20, this should of been cancelled but we proceeded with this order.",
+    whys: ["Because they did not notice the cancellation notice in the system.", "QC Sampling not done"],
+    rootCause: "Due to taken independent action on new scenarios",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["(to prevent recurrence):", "Implement a mandatory system check to prevent processing of orders with pending cancellation notices.", "Train users on proper handling of cancellation notices and emphasize checking system flags before proceeding."],
+  },
+  {
+    issueType: "Data Entry Error",
+    description: "Incorrect inspection time is set on Genesis.",
+    whys: ["not confirming the date after save", "timezone was different"],
+    rootCause: "An incorrect inspection time was recorded in the Genesis system, leading to potential misalignment in inspection scheduling and execution. \"",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["(To Avoid Recurrence)", "User Training: Reinforce importance of verifying date/time before and after saving entries.", "Validation Step: Introduce mandatory confirmation or review screen before final submission.", "System Enhancement:", "Align system timezone with user location or enable auto timezone detection.", "Display timezone clearly alongside date/time fields.", "Checklist Implementation: Add a step in SOP to reconfirm date/time post-save.\""],
+  },
+  {
+    issueType: "Incorrect Action Taken",
+    description: "Arnold made a 3rd attempt to the appraiser but, sent it to PennyMac and not the appraiser.",
+    whys: ["does not verfy the check box", "Not verifying after completing the process"],
+    rootCause: "\"Root Cause Analysis (RCA) The issue occurred due to incorrect recipient selection by the user (Arnold). The request was sent to PennyMac instead of the intended appraiser. Additionally, the checkbox was not verified, indicating the user did not complete all required steps before submission.",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: ["Reinforce user awareness/training on correct process steps.", "Encourage use of a pre-submission checklist:", "Correct recipient selected", "Checkbox verified\""],
+  },
+  {
+    issueType: "Communication Breakdown",
+    description: "Charles sent the lender an email for an inspection but did not update the reggora link",
+    whys: ["Does not followed the steps required", "Not verifying after completing the process"],
+    rootCause: "Process Deviation Charles did not follow the defined workflow, which requires updating the Reggora link after initiating inspection communication. Lack of Process Adherence / Awareness Steps required for completing the inspection request process were either not fully understood or not strictly followed. Conduct refresher sessions on system",
+    contributingFactors: [],
+    correctiveActions: [],
+    preventiveActions: [],
+  },
+];
+
+// Reference points drawn from real, publicly documented AMC industry standards and
+// federal appraisal regulation — used to add compliance/SOP context to the generated
+// RCA so it reads as more than just an internal process note. These are general
+// industry/regulatory standards, not this specific company's internal SOP (which
+// wasn't provided) — treat the "citation" as a pointer to look up, not a legal opinion.
+const REFERENCE_LIBRARY = [
+  {
+    id: 'uspap-std3-qc',
+    title: 'USPAP Standard 3 & State AMC QC Audit Requirements',
+    citation: 'USPAP Standard 3; state AMC audit-sampling rules (e.g., Colorado Board Rule Ch. 18, Minnesota Stat. §82C.10, New Hampshire RSA 310-B:12-i)',
+    keywords: 'appraisal review QC quality control reviewer sampling audit appraiser standard sop process gap deviation not followed checklist',
+    note: "USPAP Standard 3 governs appraisal reviews, and most states that register AMCs require an ongoing internal QC audit program with a minimum sampling floor (often framed as a set percentage of each appraiser's completed reports, or at least one Standard 3 review per appraiser per reporting period) performed by a properly licensed reviewer. A missed or skipped review step is the kind of gap a state examiner would expect to see documented and corrected.",
+    appliesToSteps: ['Appraisal review / QC'],
+    appliesToCategories: ['Process gap (no SOP exists)', 'Process not followed (SOP deviation)'],
+  },
+  {
+    id: 'air-dodd-frank',
+    title: 'Appraiser Independence Requirements (AIR)',
+    citation: 'Dodd-Frank Act §1472 / Regulation Z §1026.42; Fannie Mae & Freddie Mac Appraiser Independence Requirements (AIR)',
+    keywords: 'appraiser independence communication influence assignment selection firewall loan production value pressure vendor',
+    note: 'AIR bars anyone with a financial interest in the loan outcome from selecting, pressuring, or communicating substantively with the appraiser about value, and requires that any appraiser communication run through a documented, controlled AMC channel. Assignment or communication errors in this area carry compliance exposure beyond the immediate client relationship.',
+    appliesToSteps: ['Appraiser assignment'],
+    appliesToCategories: ['Vendor / appraiser error'],
+  },
+  {
+    id: 'ecoa-valuations',
+    title: 'ECOA Valuations Rule — Report Delivery Timing',
+    citation: 'Equal Credit Opportunity Act / Regulation B, 12 CFR §1002.14',
+    keywords: 'report delivery deliver applicant copy appraisal three days closing valuation disclosure late',
+    note: 'The ECOA Valuations Rule requires a copy of the completed appraisal to reach the applicant promptly, and in every case at least three business days before closing, at no extra charge. Any delay in getting the finished report out puts that statutory deadline at risk, not just the client relationship.',
+    appliesToSteps: ['Report delivery'],
+    appliesToCategories: [],
+  },
+  {
+    id: 'customary-reasonable-fee',
+    title: 'Customary & Reasonable Appraiser Compensation',
+    citation: 'Dodd-Frank Act / Regulation Z §1026.42(f)',
+    keywords: 'fee billing invoice payment compensation customary reasonable appraiser pay amount',
+    note: "Regulation Z requires lenders/AMCs to pay appraisers a customary and reasonable fee for the market, kept separate from the AMC's own management fee. A billing or fee-entry error that under- or over-states what the appraiser is owed, or delays payment, carries compliance exposure beyond the client-facing billing mistake itself.",
+    appliesToSteps: ['Billing / invoicing'],
+    appliesToCategories: ['Fee/Billing Issue'],
+  },
+  {
+    id: 'turnaround-sla',
+    title: 'Turnaround / SLA Commitments',
+    citation: "Client service-level agreement (contractual — not a federal appraisal rule)",
+    keywords: 'turnaround SLA status update delay late timeline queue scheduling tracking bandwidth workload',
+    note: 'Turnaround commitments are contractual rather than a federal appraisal standard, but a missed-SLA write-up should still name the agreed timeframe, how far this case fell outside it, and the queue/workload control that will keep it from recurring — that is generally what a client audit of the escalation will look for.',
+    appliesToSteps: ['Scheduling', 'Status update / turnaround tracking'],
+    appliesToCategories: ['Workload / bandwidth'],
+  },
+];
+
+function scoreReference(entry, queryTokens) {
+  const entryTokens = tokenize(entry.keywords);
+  return jaccard(queryTokens, entryTokens);
+}
+
+// Picks the single most relevant industry/regulatory reference for this case: an exact
+// process-step or root-cause-category match wins outright, otherwise falls back to
+// keyword overlap against the description/whys. Returns null rather than guessing when
+// nothing is clearly relevant — better no citation than a wrong one.
+function pickReference(draft, whys) {
+  const processStep = (draft.rca && draft.rca.processStepFailed) || '';
+  const category = (draft.rca && draft.rca.missReasonCategory) || '';
+  const direct = REFERENCE_LIBRARY.find(
+    (e) => e.appliesToSteps.includes(processStep) || e.appliesToCategories.includes(category)
+  );
+  if (direct) return direct;
+  const queryTokens = tokenize([category, processStep, draft.description, ...whys].join(' '));
+  const scored = REFERENCE_LIBRARY
+    .map((entry) => ({ entry, score: scoreReference(entry, queryTokens) }))
+    .sort((a, b) => b.score - a.score);
+  return scored[0] && scored[0].score > 0 ? scored[0].entry : null;
+}
+
+function scoreFewShot(entry, queryTokens) {
+  const entryTokens = tokenize([entry.issueType, entry.description, ...entry.whys].join(' '));
+  return jaccard(queryTokens, entryTokens);
+}
+
+// Picks the n most relevant historical examples for this case's category/whys, padding
+// with a diverse default set so there's always style grounding even for a novel issue type.
+function pickFewShot(category, whys, description, n = 3) {
+  const queryTokens = tokenize([category, description, ...whys].join(' '));
+  const scored = FEWSHOT_LIBRARY
+    .map((entry) => ({ entry, score: scoreFewShot(entry, queryTokens) }))
+    .sort((a, b) => b.score - a.score);
+  const top = scored.filter((s) => s.score > 0).slice(0, n).map((s) => s.entry);
+  if (top.length < n) {
+    for (const entry of FEWSHOT_LIBRARY) {
+      if (top.length >= n) break;
+      if (!top.includes(entry)) top.push(entry);
+    }
+  }
+  return top;
+}
+
+// Deterministically formats the AI's structured output into the register's exact house
+// style, so the final narrative is never at the mercy of the model's own formatting.
+function composeNarrative({ escalationSummary, rootCause, contributingFactors, correctiveActions, preventiveActions, reference }) {
+  const blocks = [];
+  if (escalationSummary) blocks.push(['Escalation:', escalationSummary].join('\n'));
+  if (rootCause) blocks.push(['Root Cause:', rootCause.trim()].join('\n'));
+  const factors = (contributingFactors || []).map((f) => (f || '').trim()).filter(Boolean);
+  if (factors.length) blocks.push(['Contributing Factors:', ...factors].join('\n'));
+  const ca = (correctiveActions || []).map((a) => (a || '').trim()).filter(Boolean);
+  if (ca.length) blocks.push(['Corrective Action (CA):', ...ca].join('\n'));
+  const pa = (preventiveActions || []).map((a) => (a || '').trim()).filter(Boolean);
+  if (pa.length) blocks.push(['Preventive Action (PA):', ...pa].join('\n'));
+  if (reference) {
+    blocks.push(['Applicable Standard / Reference:', `${reference.title} — ${reference.citation}.`, reference.note].join('\n'));
+  }
+  return blocks.join('\n\n');
+}
+
+function capitalize(s) {
+  const t = (s || '').trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+}
+
+function lowerFirst(s) {
+  const t = (s || '').trim();
+  return t ? t.charAt(0).toLowerCase() + t.slice(1) : t;
+}
+
+function stripTrailingPunct(s) {
+  return (s || '').trim().replace(/[.\s]+$/, '');
+}
+
+const LEADING_CONNECTOR = /^(because|due to|so that|the reason is|as a result of)\s+/i;
+
+// Builds a root cause statement directly from the case's own 5-Whys answers — never
+// from a matched historical example — so the statement is always grounded in what the
+// user actually entered for THIS case, with no invented facts.
+function synthesizeRootCause(whys) {
+  const cleaned = whys.map(stripTrailingPunct).filter(Boolean);
+  if (cleaned.length === 0) return '';
+  const deepest = cleaned[cleaned.length - 1];
+  const proximate = cleaned.length > 1 ? cleaned[0] : '';
+  if (proximate && proximate.toLowerCase() !== deepest.toLowerCase()) {
+    if (LEADING_CONNECTOR.test(deepest)) {
+      // Deepest why already reads as a reason clause ("Due to a lapse in...") — attach
+      // it directly with its own connector rather than forcing a second "because".
+      return `${capitalize(proximate)}, ${lowerFirst(deepest)}.`;
+    }
+    return `${capitalize(proximate)}. This occurred because ${lowerFirst(deepest)}.`;
+  }
+  return `${capitalize(deepest)}.`;
+}
+
+// States what the escalation actually was — the client's/QA's own description plus the
+// case's identifying context — so the generated write-up explains the incident itself
+// before analyzing why it happened, instead of jumping straight to root cause.
+function synthesizeEscalationSummary(draft) {
+  const desc = stripTrailingPunct(draft.description);
+  if (!desc) return '';
+  const sentence = capitalize(desc) + '.';
+  const details = [];
+  if (draft.clientName) details.push(`Client: ${draft.clientName}`);
+  if (draft.orderId) details.push(`Order/File: ${draft.orderId}`);
+  if (draft.rca && draft.rca.processStepFailed) details.push(`Process step: ${draft.rca.processStepFailed}`);
+  if (draft.severity) details.push(`Severity: ${draft.severity}`);
+  const detailLine = details.length ? `\n(${details.join(' · ')})` : '';
+  return `${sentence}${detailLine}`;
+}
+
+// Retrieves the closest-matching historical examples for this case (by token overlap
+// across issue type / description / whys) and reuses their real, previously-used
+// corrective/preventive actions as a starting template — entirely offline, no API call.
+function synthesizeRCACAPA(draft, whys) {
+  const queryTokens = tokenize([draft.rca.missReasonCategory, draft.description, ...whys].join(' '));
+  const scored = FEWSHOT_LIBRARY
+    .map((entry) => ({ entry, score: scoreFewShot(entry, queryTokens) }))
+    .sort((a, b) => b.score - a.score);
+
+  const escalationSummary = synthesizeEscalationSummary(draft);
+  const rootCause = synthesizeRootCause(whys);
+  // Middle whys (between the first, proximate cause, and the last, deepest one) become
+  // contributing factors — again, only the user's own words, never fabricated.
+  const contributingFactors = whys.length > 2 ? whys.slice(1, -1) : [];
+
+  let correctiveActions = [];
+  let preventiveActions = [];
+  let matchedOn = null;
+  for (const { entry, score } of scored) {
+    if (score <= 0) break;
+    if (!matchedOn) matchedOn = entry;
+    if (!correctiveActions.length && entry.correctiveActions.length) correctiveActions = entry.correctiveActions;
+    if (!preventiveActions.length && entry.preventiveActions.length) preventiveActions = entry.preventiveActions;
+    if (correctiveActions.length && preventiveActions.length) break;
+  }
+  if (!correctiveActions.length) {
+    correctiveActions = ['Provide coaching to the associate on this specific process step.'];
+  }
+  if (!preventiveActions.length) {
+    preventiveActions = ['Conduct refresher training and add a verification step to prevent recurrence.'];
+  }
+
+  const reference = pickReference(draft, whys);
+
+  return { escalationSummary, rootCause, contributingFactors, correctiveActions, preventiveActions, matchedOn, reference };
+}
+
+function severityTone(sev) {
+  if (sev === 'Critical') return 'red';
+  if (sev === 'High') return 'red';
+  if (sev === 'Medium') return 'amber';
+  return 'muted';
+}
+
+function statusTone(status) {
+  if (status === 'Closed') return 'green';
+  if (status === 'Open') return 'muted';
+  return 'amber';
+}
+
+function whyChain(rca) {
+  const whys = [rca.why1, rca.why2, rca.why3, rca.why4, rca.why5]
+    .map((w) => (w || '').trim())
+    .filter(Boolean);
+  // Fallback for cases saved before the 5-Whys structure existed.
+  if (whys.length === 0 && rca.missReasonDetails) whys.push(rca.missReasonDetails);
+  return whys;
+}
+
+function buildSections(c, allCases) {
+  const matches = (c.rca.linkedCaseIds || [])
+    .map((id) => allCases.find((x) => x.id === id))
+    .filter(Boolean);
+  const whys = whyChain(c.rca);
+  const whyRows = whys.length
+    ? whys.map((w, i) => [`Why ${i + 1}`, w])
+    : [['Why 1', '—']];
+  return [
+    {
+      heading: 'Escalation',
+      rows: [
+        ['Client', c.clientName || '—'],
+        ['Order / file ID', c.orderId || '—'],
+        ['Category', c.category],
+        ['Severity', c.severity],
+        ['Date received', formatDate(c.dateReceived)],
+        ['Reported by', c.reportedBy || '—'],
+        ['Description', c.description || '—'],
+      ],
+    },
+    {
+      heading: 'Root cause (5 Whys)',
+      rows: [
+        ['Process step where it failed', c.rca.processStepFailed],
+        ['Person involved', c.rca.involvedPerson || '—'],
+        ['Did they understand the mistake?', c.rca.understoodMistake + (c.rca.understoodNotes ? ' — ' + c.rca.understoodNotes : '')],
+        ['Root cause category', c.rca.missReasonCategory],
+        ...whyRows,
+        ['Final root cause', whys[whys.length - 1] || '—'],
+        ['Repetitive issue?', c.rca.isRepetitive ? `Yes${matches.length ? ' — linked to ' + matches.map((m) => m.caseNumber).join(', ') : ''}` : 'No prior similar case identified'],
+      ],
+    },
+    {
+      heading: 'Immediate action',
+      rows: [['What was done right after the error was found', c.immediateAction || '—']],
+    },
+    {
+      heading: 'Corrective & preventive action (CAPA)',
+      rows: [
+        ['Corrective action (fixes this case)', c.capa.correctiveAction || '—'],
+        ['Corrective owner / due', `${c.capa.correctiveOwner || '—'} · ${formatDate(c.capa.correctiveDueDate)}`],
+        ['Preventive action (stops recurrence)', c.capa.preventiveAction || '—'],
+        ['Preventive owner / due', `${c.capa.preventiveOwner || '—'} · ${formatDate(c.capa.preventiveDueDate)}`],
+        ['Applicable standard / reference', c.complianceReference || '—'],
+      ],
+    },
+    {
+      heading: 'Verification',
+      rows: [
+        ['How we will confirm it worked', c.capa.verificationPlan || '—'],
+        ['Target date', formatDate(c.capa.verificationDate)],
+        ['Verified effective?', c.capa.verified ? 'Yes' : 'Not yet'],
+      ],
+    },
+  ];
+}
+
+/* ---------------------------------------------------------------------- */
+/* Small shared UI pieces                                                 */
+/* ---------------------------------------------------------------------- */
+
+function Tag({ children, tone = 'muted' }) {
+  return <span className={`er-tag er-tag-${tone}`}>{children}</span>;
+}
+
+function Field({ label, required, hint, children }) {
+  return (
+    <label className="er-field">
+      <span className="er-field-label">
+        {label}{required && <span className="er-required">*</span>}
+      </span>
+      {children}
+      {hint && <span className="er-field-hint">{hint}</span>}
+    </label>
+  );
+}
+
+function TextInput(props) {
+  return <input {...props} className={`er-input ${props.className || ''}`} />;
+}
+
+function TextArea(props) {
+  return <textarea {...props} className={`er-input er-textarea ${props.className || ''}`} />;
+}
+
+function Select({ options, ...props }) {
+  return (
+    <div className="er-select-wrap">
+      <select {...props} className="er-input er-select">
+        {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      </select>
+      <ChevronDown size={15} className="er-select-chevron" />
+    </div>
+  );
+}
+
+function ConfirmModal({ title, body, confirmLabel = 'Confirm', danger, onConfirm, onCancel }) {
+  return (
+    <div className="er-modal-overlay" role="dialog" aria-modal="true">
+      <div className="er-modal">
+        <h3 className="er-serif er-modal-title">{title}</h3>
+        <p className="er-modal-body">{body}</p>
+        <div className="er-modal-actions">
+          <button className="er-btn er-btn-ghost" onClick={onCancel}>Cancel</button>
+          <button className={`er-btn ${danger ? 'er-btn-danger' : 'er-btn-primary'}`} onClick={onConfirm}>{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Dashboard                                                              */
+/* ---------------------------------------------------------------------- */
+
+function Dashboard({ cases, onNew, onOpen, onResetAll }) {
+  const [search, setSearch] = useState('');
+  const [catFilter, setCatFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [repeatOnly, setRepeatOnly] = useState(false);
+  const [showReset, setShowReset] = useState(false);
+
+  const filtered = useMemo(() => {
+    return cases
+      .filter((c) => catFilter === 'All' || c.category === catFilter)
+      .filter((c) => statusFilter === 'All' || c.status === statusFilter)
+      .filter((c) => !repeatOnly || c.rca.isRepetitive)
+      .filter((c) => {
+        if (!search.trim()) return true;
+        const s = search.toLowerCase();
+        return (
+          c.clientName.toLowerCase().includes(s) ||
+          c.orderId.toLowerCase().includes(s) ||
+          c.description.toLowerCase().includes(s) ||
+          c.caseNumber.toLowerCase().includes(s)
+        );
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [cases, catFilter, statusFilter, repeatOnly, search]);
+
+  const stats = useMemo(() => {
+    const total = cases.length;
+    const open = cases.filter((c) => c.status !== 'Closed').length;
+    const repetitive = cases.filter((c) => c.rca.isRepetitive).length;
+    const closed = cases.filter((c) => c.status === 'Closed').length;
+    return { total, open, repetitive, closed };
+  }, [cases]);
+
+  const rootCauseBreakdown = useMemo(() => {
+    const counts = {};
+    cases.forEach((c) => {
+      const k = c.rca.missReasonCategory;
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const max = entries.length ? entries[0][1] : 1;
+    return { entries, max };
+  }, [cases]);
+
+  return (
+    <div>
+      <div className="er-shared-banner">
+        <Info size={15} />
+        <span>This register is shared with every team leader using this portal — entries logged by anyone will be visible to all.</span>
+      </div>
+
+      <div className="er-header-row">
+        <div>
+          <h1 className="er-serif er-h1">Escalation &amp; CAPA register</h1>
+          <p className="er-subtitle">Client escalations for appraisal and order management, with guided root-cause analysis and corrective/preventive action tracking.</p>
+        </div>
+        <button className="er-btn er-btn-primary" onClick={onNew}>
+          <Plus size={16} /> Log new escalation
+        </button>
+      </div>
+
+      <div className="er-stats-row">
+        <div className="er-stat">
+          <span className="er-stat-value">{stats.total}</span>
+          <span className="er-stat-label">Total logged</span>
+        </div>
+        <div className="er-stat er-stat-accent-amber">
+          <span className="er-stat-value">{stats.open}</span>
+          <span className="er-stat-label">Open</span>
+        </div>
+        <div className="er-stat er-stat-accent-red">
+          <span className="er-stat-value">{stats.repetitive}</span>
+          <span className="er-stat-label">Flagged repetitive</span>
+        </div>
+        <div className="er-stat er-stat-accent-green">
+          <span className="er-stat-value">{stats.closed}</span>
+          <span className="er-stat-label">Closed</span>
+        </div>
+      </div>
+
+      {rootCauseBreakdown.entries.length > 0 && (
+        <div className="er-panel">
+          <h2 className="er-panel-title">Root causes logged so far</h2>
+          <div className="er-bars">
+            {rootCauseBreakdown.entries.map(([label, count]) => (
+              <div className="er-bar-row" key={label}>
+                <span className="er-bar-label">{label}</span>
+                <div className="er-bar-track">
+                  <div className="er-bar-fill" style={{ width: `${Math.max(6, (count / rootCauseBreakdown.max) * 100)}%` }} />
+                </div>
+                <span className="er-bar-count">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="er-filters-row">
+        <div className="er-search">
+          <Search size={15} />
+          <input
+            placeholder="Search client, order ID, case number, description…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select options={['All', ...CATEGORIES]} value={catFilter} onChange={(e) => setCatFilter(e.target.value)} aria-label="Filter by category" />
+        <Select options={['All', ...STATUSES]} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} aria-label="Filter by status" />
+        <label className="er-checkbox-inline">
+          <input type="checkbox" checked={repeatOnly} onChange={(e) => setRepeatOnly(e.target.checked)} />
+          Repetitive only
+        </label>
+      </div>
+
+      {cases.length === 0 ? (
+        <div className="er-empty">
+          <ClipboardList size={26} />
+          <p className="er-serif er-empty-title">No escalations logged yet</p>
+          <p className="er-empty-body">Log the first client escalation to start building the register and root-cause history.</p>
+          <button className="er-btn er-btn-primary" onClick={onNew}><Plus size={16} /> Log new escalation</button>
+        </div>
+      ) : (
+        <div className="er-table-wrap">
+          <table className="er-table">
+            <thead>
+              <tr>
+                <th>Case</th>
+                <th>Client</th>
+                <th>Category</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Repeat</th>
+                <th>Received</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((c) => (
+                <tr key={c.id} onClick={() => onOpen(c.id)} tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter') onOpen(c.id); }}>
+                  <td className="er-mono">{c.caseNumber}</td>
+                  <td>{c.clientName || '—'}</td>
+                  <td>{c.category}</td>
+                  <td><Tag tone={severityTone(c.severity)}>{c.severity}</Tag></td>
+                  <td><Tag tone={statusTone(c.status)}>{c.status}</Tag></td>
+                  <td>{c.rca.isRepetitive ? <Tag tone="red">Repeat</Tag> : '—'}</td>
+                  <td>{formatDate(c.dateReceived)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {filtered.length === 0 && <p className="er-empty-filter">No cases match these filters.</p>}
+        </div>
+      )}
+
+      {cases.length > 0 && (
+        <button className="er-link-muted er-reset-link" onClick={() => setShowReset(true)}>Clear all register data</button>
+      )}
+
+      {showReset && (
+        <ConfirmModal
+          title="Clear all register data?"
+          body="This permanently deletes every logged escalation for all team leaders sharing this register. This cannot be undone."
+          confirmLabel="Clear everything"
+          danger
+          onCancel={() => setShowReset(false)}
+          onConfirm={() => { setShowReset(false); onResetAll(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Wizard steps                                                           */
+/* ---------------------------------------------------------------------- */
+
+function StepEscalationDetails({ draft, setTop }) {
+  return (
+    <div className="er-step-grid">
+      <Field label="Client name" required>
+        <TextInput value={draft.clientName} onChange={(e) => setTop('clientName', e.target.value)} placeholder="e.g. Meridian Home Lending" />
+      </Field>
+      <Field label="Order / file ID" required>
+        <TextInput value={draft.orderId} onChange={(e) => setTop('orderId', e.target.value)} placeholder="e.g. ORD-88213" />
+      </Field>
+      <Field label="Category" required>
+        <Select options={CATEGORIES} value={draft.category} onChange={(e) => setTop('category', e.target.value)} />
+      </Field>
+      <Field label="Severity" required>
+        <Select options={SEVERITIES} value={draft.severity} onChange={(e) => setTop('severity', e.target.value)} />
+      </Field>
+      <Field label="Date received">
+        <TextInput type="date" value={draft.dateReceived} onChange={(e) => setTop('dateReceived', e.target.value)} />
+      </Field>
+      <Field label="Reported by (team leader)">
+        <TextInput value={draft.reportedBy} onChange={(e) => setTop('reportedBy', e.target.value)} placeholder="Your name" />
+      </Field>
+      <Field label="What did the client escalate?" required hint="Describe the error as the client reported it.">
+        <TextArea rows={4} value={draft.description} onChange={(e) => setTop('description', e.target.value)} placeholder="e.g. Appraisal report was delivered with the wrong comparable property address, causing a delay in underwriting." />
+      </Field>
+    </div>
+  );
+}
+
+const WHY_PROMPTS = [
+  'Why did this happen? (Why 1)',
+  'Why did that happen? (Why 2)',
+  'Why did that happen? (Why 3)',
+  'Why did that happen? (Why 4)',
+  'Why did that happen? (Why 5)',
+];
+const WHY_KEYS = ['why1', 'why2', 'why3', 'why4', 'why5'];
+
+function StepUnderstandingError({ draft, setRCA, onAutoGenerate, aiLoading, aiError }) {
+  // Show Why 1, plus each next Why only once the one before it has been filled in —
+  // keeps the form short for simple cases while still allowing a full 5-level drill-down.
+  const visibleWhys = WHY_KEYS.reduce((n, key, i) => (i === 0 || draft.rca[WHY_KEYS[i - 1]].trim() ? i + 1 : n), 1);
+  const canAutoGenerate = draft.rca.why1.trim().length > 0;
+
+  return (
+    <div className="er-step-grid">
+      <Field label="Which process step failed?" required>
+        <Select options={PROCESS_STEPS} value={draft.rca.processStepFailed} onChange={(e) => setRCA('processStepFailed', e.target.value)} />
+      </Field>
+      <Field label="Who was involved?" required hint="The team member (or vendor/appraiser) whose step this was.">
+        <TextInput value={draft.rca.involvedPerson} onChange={(e) => setRCA('involvedPerson', e.target.value)} placeholder="Name / role" />
+      </Field>
+      <Field label="Did the person who made the error understand where they went wrong?" required>
+        <div className="er-radio-row">
+          {UNDERSTOOD_OPTIONS.map((opt) => (
+            <label key={opt} className={`er-radio-pill ${draft.rca.understoodMistake === opt ? 'er-radio-pill-active' : ''}`}>
+              <input type="radio" name="understood" value={opt} checked={draft.rca.understoodMistake === opt} onChange={() => setRCA('understoodMistake', opt)} />
+              {opt}
+            </label>
+          ))}
+        </div>
+      </Field>
+      <Field label="Notes on their understanding" hint="What did they say when you discussed it with them?">
+        <TextArea rows={2} value={draft.rca.understoodNotes} onChange={(e) => setRCA('understoodNotes', e.target.value)} />
+      </Field>
+      <Field label="Root cause category" required hint="Used for the register-wide root-cause breakdown on the dashboard.">
+        <Select options={ROOT_CAUSE_CATEGORIES} value={draft.rca.missReasonCategory} onChange={(e) => setRCA('missReasonCategory', e.target.value)} />
+      </Field>
+
+      <div className="er-field">
+        <span className="er-field-label">5 Whys — drill down to the real root cause</span>
+        <span className="er-field-hint">Start with what happened, then keep asking "why" until you reach something a corrective/preventive action can actually fix. Most cases only need 2–5 whys.</span>
+      </div>
+      {WHY_KEYS.slice(0, visibleWhys).map((key, i) => (
+        <Field key={key} label={WHY_PROMPTS[i]} required={i === 0}>
+          <TextArea
+            rows={2}
+            value={draft.rca[key]}
+            onChange={(e) => setRCA(key, e.target.value)}
+            placeholder={i === 0
+              ? 'e.g. The user did not verify regional ownership before submitting the assignment.'
+              : 'e.g. The system allowed manual assignment without any validation or warning prompt.'}
+          />
+        </Field>
+      ))}
+
+      {canAutoGenerate && (
+        <div className="er-ai-block">
+          <div className="er-ai-head">
+            <h4 className="er-review-heading"><Sparkles size={14} /> Auto-generate RCA &amp; CAPA</h4>
+            <button className="er-btn er-btn-primary er-btn-sm" onClick={onAutoGenerate} disabled={aiLoading}>
+              {aiLoading ? <><Loader2 size={14} className="er-spin" /> Generating…</> : <><Sparkles size={14} /> Generate</>}
+            </button>
+          </div>
+          <p className="er-ai-hint">Drafts the root cause, corrective action and preventive action from the whys above, matched to your team's own RCA/CAPA style. It fills in the CAPA step and the review note — everything stays editable before you save.</p>
+          {aiError && <p className="er-ai-error">{aiError}</p>}
+          {draft.aiNarrative && (
+            <div className="er-panel er-narrative-panel" style={{ marginTop: 10 }}>
+              <p className="er-narrative-text">{draft.aiNarrative}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StepRepetitionCheck({ draft, setRCA, cases }) {
+  const matches = useMemo(() => findMatches(draft, cases), [draft.description, draft.category, draft.rca.processStepFailed, cases]);
+
+  const toggleLink = (id) => {
+    const linked = draft.rca.linkedCaseIds || [];
+    const next = linked.includes(id) ? linked.filter((x) => x !== id) : [...linked, id];
+    setRCA('linkedCaseIds', next);
+    if (next.length > 0) setRCA('isRepetitive', true);
+  };
+
+  return (
+    <div className="er-step-grid">
+      <div className="er-match-panel">
+        <h3 className="er-match-heading"><Link2 size={15} /> Similar past cases</h3>
+        {matches.length === 0 ? (
+          <p className="er-match-empty">No similar past cases were found automatically, based on description, category and process step. You can still mark this as repetitive manually below.</p>
+        ) : (
+          <ul className="er-match-list">
+            {matches.map((m) => (
+              <li key={m.caseObj.id} className="er-match-item">
+                <label className="er-match-check">
+                  <input
+                    type="checkbox"
+                    checked={(draft.rca.linkedCaseIds || []).includes(m.caseObj.id)}
+                    onChange={() => toggleLink(m.caseObj.id)}
+                  />
+                  <div>
+                    <div className="er-match-top">
+                      <span className="er-mono">{m.caseObj.caseNumber}</span>
+                      <span className="er-match-score">{Math.round(m.score * 100)}% similar</span>
+                      <span className="er-match-date">{formatDate(m.caseObj.dateReceived)}</span>
+                    </div>
+                    <div className="er-match-desc">{m.caseObj.description}</div>
+                  </div>
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <Field label="Is this a repetitive issue?" required hint="Confirm or override the automatic suggestion above.">
+        <div className="er-radio-row">
+          <label className={`er-radio-pill ${draft.rca.isRepetitive ? 'er-radio-pill-active' : ''}`}>
+            <input type="radio" name="repetitive" checked={draft.rca.isRepetitive === true} onChange={() => setRCA('isRepetitive', true)} />
+            Yes, repetitive
+          </label>
+          <label className={`er-radio-pill ${!draft.rca.isRepetitive ? 'er-radio-pill-active' : ''}`}>
+            <input type="radio" name="repetitive" checked={draft.rca.isRepetitive === false} onChange={() => { setRCA('isRepetitive', false); setRCA('linkedCaseIds', []); }} />
+            No, first occurrence
+          </label>
+        </div>
+      </Field>
+    </div>
+  );
+}
+
+function StepImmediateAction({ draft, setTop }) {
+  return (
+    <div className="er-step-grid">
+      <Field label="What was done immediately after the error was found?" required hint="Containment, not the long-term fix — e.g. corrected and resent the report, notified the client, refunded a fee.">
+        <TextArea rows={4} value={draft.immediateAction} onChange={(e) => setTop('immediateAction', e.target.value)} />
+      </Field>
+    </div>
+  );
+}
+
+function StepCAPA({ draft, setCAPA, onAutoGenerate, aiLoading, aiError }) {
+  return (
+    <div className="er-step-grid">
+      <div className="er-ai-head">
+        <span className="er-field-hint">These can be auto-drafted from the RCA whys you entered on the previous step.</span>
+        <button className="er-btn er-btn-ghost er-btn-sm" onClick={onAutoGenerate} disabled={aiLoading}>
+          {aiLoading ? <><Loader2 size={14} className="er-spin" /> Generating…</> : <><Sparkles size={14} /> Auto-generate</>}
+        </button>
+      </div>
+      {aiError && <p className="er-ai-error">{aiError}</p>}
+      <Field label="Corrective action" required hint="The specific fix for this case.">
+        <TextArea rows={3} value={draft.capa.correctiveAction} onChange={(e) => setCAPA('correctiveAction', e.target.value)} />
+      </Field>
+      <div className="er-two-col">
+        <Field label="Corrective owner"><TextInput value={draft.capa.correctiveOwner} onChange={(e) => setCAPA('correctiveOwner', e.target.value)} /></Field>
+        <Field label="Corrective due date"><TextInput type="date" value={draft.capa.correctiveDueDate} onChange={(e) => setCAPA('correctiveDueDate', e.target.value)} /></Field>
+      </div>
+      <Field label="Preventive action" required hint="The systemic fix so this cannot recur — training, SOP update, added QC step, system control, etc.">
+        <TextArea rows={3} value={draft.capa.preventiveAction} onChange={(e) => setCAPA('preventiveAction', e.target.value)} />
+      </Field>
+      <div className="er-two-col">
+        <Field label="Preventive owner"><TextInput value={draft.capa.preventiveOwner} onChange={(e) => setCAPA('preventiveOwner', e.target.value)} /></Field>
+        <Field label="Preventive due date"><TextInput type="date" value={draft.capa.preventiveDueDate} onChange={(e) => setCAPA('preventiveDueDate', e.target.value)} /></Field>
+      </div>
+    </div>
+  );
+}
+
+function StepVerification({ draft, setCAPA }) {
+  return (
+    <div className="er-step-grid">
+      <Field label="How will we verify the preventive action actually worked?" required hint="e.g. audit the next 10 orders through this step, confirm training completion, re-check QC pass rate.">
+        <TextArea rows={3} value={draft.capa.verificationPlan} onChange={(e) => setCAPA('verificationPlan', e.target.value)} />
+      </Field>
+      <Field label="Target verification date">
+        <TextInput type="date" value={draft.capa.verificationDate} onChange={(e) => setCAPA('verificationDate', e.target.value)} />
+      </Field>
+      <label className="er-checkbox-inline">
+        <input type="checkbox" checked={draft.capa.verified} onChange={(e) => setCAPA('verified', e.target.checked)} />
+        Already verified effective
+      </label>
+    </div>
+  );
+}
+
+function StepReview({ draft, setTop, cases, aiLoading, aiError, onGenerateAI }) {
+  const sections = useMemo(() => buildSections(draft, cases), [draft, cases]);
+  return (
+    <div className="er-step-grid">
+      <div className="er-review-doc">
+        {sections.map((s) => (
+          <div className="er-review-section" key={s.heading}>
+            <h4 className="er-review-heading">{s.heading}</h4>
+            <dl className="er-review-rows">
+              {s.rows.map(([label, value]) => (
+                <React.Fragment key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </React.Fragment>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </div>
+
+      <div className="er-ai-block">
+        <div className="er-ai-head">
+          <h4 className="er-review-heading"><Sparkles size={14} /> AI-drafted RCA/CAPA note</h4>
+          <button className="er-btn er-btn-ghost er-btn-sm" onClick={onGenerateAI} disabled={aiLoading}>
+            {aiLoading ? <><Loader2 size={14} className="er-spin" /> Generating…</> : <><Sparkles size={14} /> Regenerate</>}
+          </button>
+        </div>
+        <p className="er-ai-hint">Turns the whys into a client-file-ready narrative you can edit before saving. Regenerating also refreshes the corrective/preventive action fields above.</p>
+        {aiError && <p className="er-ai-error">{aiError}</p>}
+        <TextArea rows={6} value={draft.aiNarrative} onChange={(e) => setTop('aiNarrative', e.target.value)} placeholder="Click “Regenerate”, or write your own summary here." />
+      </div>
+
+      <Field label="Additional notes" hint="Anything else worth keeping on file.">
+        <TextArea rows={2} value={draft.additionalNotes} onChange={(e) => setTop('additionalNotes', e.target.value)} />
+      </Field>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Wizard shell                                                           */
+/* ---------------------------------------------------------------------- */
+
+function canProceed(step, draft) {
+  switch (step) {
+    case 0: return draft.clientName.trim() && draft.orderId.trim() && draft.description.trim();
+    case 1: return draft.rca.involvedPerson.trim() && draft.rca.why1.trim();
+    case 3: return draft.immediateAction.trim();
+    case 4: return draft.capa.correctiveAction.trim() && draft.capa.preventiveAction.trim();
+    case 5: return draft.capa.verificationPlan.trim();
+    default: return true;
+  }
+}
+
+function Wizard({ draft, setDraft, cases, currentStep, setCurrentStep, onSave, onCancel, isEditing }) {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+
+  const setTop = useCallback((key, value) => setDraft((prev) => ({ ...prev, [key]: value })), [setDraft]);
+  const setRCA = useCallback((key, value) => setDraft((prev) => ({ ...prev, rca: { ...prev.rca, [key]: value } })), [setDraft]);
+  const setCAPA = useCallback((key, value) => setDraft((prev) => ({ ...prev, capa: { ...prev.capa, [key]: value } })), [setDraft]);
+
+  const autoGenerateRCACAPA = () => {
+    const whys = whyChain(draft.rca);
+    if (whys.length === 0) {
+      setAiError('Add at least one "why" before auto-generating.');
+      return;
+    }
+    setAiError('');
+    // Synthesized locally from the team's real historical RCA/CAPA log — this page is
+    // static (no server), so generation runs entirely in the browser rather than
+    // calling an external AI API, which a plain hosted page has no way to reach.
+    const parsed = synthesizeRCACAPA(draft, whys);
+    setDraft((prev) => ({
+      ...prev,
+      capa: {
+        ...prev.capa,
+        correctiveAction: parsed.correctiveActions.join('\n') || prev.capa.correctiveAction,
+        preventiveAction: parsed.preventiveActions.join('\n') || prev.capa.preventiveAction,
+      },
+      aiNarrative: composeNarrative(parsed),
+      complianceReference: parsed.reference ? `${parsed.reference.title} — ${parsed.reference.citation}` : prev.complianceReference,
+    }));
+  };
+
+  const stepOk = canProceed(currentStep, draft);
+  const isLast = currentStep === WIZARD_STEPS.length - 1;
+
+  return (
+    <div className="er-wizard">
+      <div className="er-wizard-header">
+        <button className="er-link-muted er-back" onClick={onCancel}><ArrowLeft size={15} /> Back to register</button>
+        <h2 className="er-serif er-h2">{isEditing ? `Editing ${draft.caseNumber}` : 'Log new escalation'}</h2>
+      </div>
+
+      <div className="er-wizard-body">
+        <ol className="er-stepper">
+          {WIZARD_STEPS.map((s, i) => (
+            <li key={s.title}>
+              <button
+                className={`er-step-btn ${i === currentStep ? 'er-step-btn-active' : ''} ${i < currentStep ? 'er-step-btn-done' : ''}`}
+                onClick={() => setCurrentStep(i)}
+              >
+                <span className="er-step-num">{i < currentStep ? <Check size={12} /> : i + 1}</span>
+                {s.title}
+              </button>
+            </li>
+          ))}
+        </ol>
+
+        <div className="er-wizard-content">
+          {currentStep === 0 && <StepEscalationDetails draft={draft} setTop={setTop} />}
+          {currentStep === 1 && (
+            <StepUnderstandingError draft={draft} setRCA={setRCA} onAutoGenerate={autoGenerateRCACAPA} aiLoading={aiLoading} aiError={aiError} />
+          )}
+          {currentStep === 2 && <StepRepetitionCheck draft={draft} setRCA={setRCA} cases={cases} />}
+          {currentStep === 3 && <StepImmediateAction draft={draft} setTop={setTop} />}
+          {currentStep === 4 && (
+            <StepCAPA draft={draft} setCAPA={setCAPA} onAutoGenerate={autoGenerateRCACAPA} aiLoading={aiLoading} aiError={aiError} />
+          )}
+          {currentStep === 5 && <StepVerification draft={draft} setCAPA={setCAPA} />}
+          {currentStep === 6 && (
+            <StepReview draft={draft} setTop={setTop} cases={cases} aiLoading={aiLoading} aiError={aiError} onGenerateAI={autoGenerateRCACAPA} />
+          )}
+
+          <div className="er-wizard-nav">
+            <button className="er-btn er-btn-ghost" disabled={currentStep === 0} onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}>
+              <ArrowLeft size={15} /> Back
+            </button>
+            {!isLast ? (
+              <button className="er-btn er-btn-primary" disabled={!stepOk} onClick={() => setCurrentStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1))}>
+                Next <ArrowRight size={15} />
+              </button>
+            ) : (
+              <button className="er-btn er-btn-primary" onClick={onSave}>
+                <Check size={15} /> Save case
+              </button>
+            )}
+          </div>
+          {!stepOk && !isLast && <p className="er-step-warning">Fill in the required fields (marked *) to continue.</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Case detail view                                                       */
+/* ---------------------------------------------------------------------- */
+
+function CaseDetail({ caseObj, cases, onBack, onEdit, onDelete, onChangeStatus }) {
+  const [showDelete, setShowDelete] = useState(false);
+  const sections = useMemo(() => buildSections(caseObj, cases), [caseObj, cases]);
+
+  return (
+    <div>
+      <div className="er-wizard-header">
+        <button className="er-link-muted er-back" onClick={onBack}><ArrowLeft size={15} /> Back to register</button>
+      </div>
+
+      <div className="er-detail-top">
+        <div>
+          <span className="er-mono er-detail-case-no">{caseObj.caseNumber}</span>
+          <h2 className="er-serif er-h2">{caseObj.clientName || 'Untitled case'}</h2>
+          <div className="er-detail-tags">
+            <Tag tone={severityTone(caseObj.severity)}>{caseObj.severity}</Tag>
+            <Tag tone="muted">{caseObj.category}</Tag>
+            {caseObj.rca.isRepetitive && <Tag tone="red">Repetitive</Tag>}
+          </div>
+        </div>
+        <div className="er-detail-actions">
+          <Select options={STATUSES} value={caseObj.status} onChange={(e) => onChangeStatus(e.target.value)} />
+          <button className="er-btn er-btn-ghost" onClick={onEdit}><Pencil size={14} /> Edit</button>
+          <button className="er-btn er-btn-ghost er-btn-danger-ghost" onClick={() => setShowDelete(true)}><Trash2 size={14} /> Delete</button>
+        </div>
+      </div>
+
+      <p className="er-detail-meta">Logged {formatDateTime(caseObj.createdAt)}{caseObj.updatedAt !== caseObj.createdAt ? ` · updated ${formatDateTime(caseObj.updatedAt)}` : ''}{caseObj.reportedBy ? ` · by ${caseObj.reportedBy}` : ''}</p>
+
+      {caseObj.aiNarrative && (
+        <div className="er-panel er-narrative-panel">
+          <h3 className="er-panel-title"><Sparkles size={14} /> RCA / CAPA summary</h3>
+          <p className="er-narrative-text">{caseObj.aiNarrative}</p>
+        </div>
+      )}
+
+      <div className="er-review-doc">
+        {sections.map((s) => (
+          <div className="er-review-section" key={s.heading}>
+            <h4 className="er-review-heading">{s.heading}</h4>
+            <dl className="er-review-rows">
+              {s.rows.map(([label, value]) => (
+                <React.Fragment key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </React.Fragment>
+              ))}
+            </dl>
+          </div>
+        ))}
+        {caseObj.additionalNotes && (
+          <div className="er-review-section">
+            <h4 className="er-review-heading">Additional notes</h4>
+            <p className="er-review-rows">{caseObj.additionalNotes}</p>
+          </div>
+        )}
+      </div>
+
+      {showDelete && (
+        <ConfirmModal
+          title={`Delete ${caseObj.caseNumber}?`}
+          body="This permanently removes the case from the shared register for all team leaders."
+          confirmLabel="Delete case"
+          danger
+          onCancel={() => setShowDelete(false)}
+          onConfirm={() => { setShowDelete(false); onDelete(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* App                                                                    */
+/* ---------------------------------------------------------------------- */
+
+function App() {
+  const [status, setStatus] = useState('loading'); // loading | ready | error
+  const [cases, setCases] = useState([]);
+  const [view, setView] = useState('dashboard'); // dashboard | wizard | detail
+  const [activeId, setActiveId] = useState(null);
+  const [draft, setDraft] = useState(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isEditingExisting, setIsEditingExisting] = useState(false);
+
+  const load = useCallback(async () => {
+    setStatus('loading');
+    try {
+      let parsed = [];
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        parsed = raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        parsed = [];
+      }
+      setCases(Array.isArray(parsed) ? parsed : []);
+      setStatus('ready');
+    } catch (e) {
+      setStatus('error');
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const persist = async (next) => {
+    setCases(next);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch (e) {
+      // Best-effort: keep local state even if the write failed, and surface nothing intrusive.
+    }
+  };
+
+  const openNew = () => {
+    setDraft(blankCase(cases.length + 1));
+    setIsEditingExisting(false);
+    setCurrentStep(0);
+    setView('wizard');
+  };
+
+  const openEdit = (id) => {
+    const found = cases.find((c) => c.id === id);
+    if (!found) return;
+    setDraft(JSON.parse(JSON.stringify(found)));
+    setIsEditingExisting(true);
+    setCurrentStep(0);
+    setView('wizard');
+  };
+
+  const openDetail = (id) => {
+    setActiveId(id);
+    setView('detail');
+  };
+
+  const saveDraft = () => {
+    const now = new Date().toISOString();
+    const finished = { ...draft, updatedAt: now };
+    const exists = cases.some((c) => c.id === finished.id);
+    const next = exists ? cases.map((c) => (c.id === finished.id ? finished : c)) : [...cases, finished];
+    persist(next);
+    setActiveId(finished.id);
+    setView('detail');
+  };
+
+  const changeStatus = (id, newStatus) => {
+    const next = cases.map((c) => (c.id === id ? { ...c, status: newStatus, updatedAt: new Date().toISOString() } : c));
+    persist(next);
+  };
+
+  const deleteCase = (id) => {
+    const next = cases.filter((c) => c.id !== id);
+    persist(next);
+    setView('dashboard');
+  };
+
+  const resetAll = () => {
+    persist([]);
+    setView('dashboard');
+  };
+
+  const activeCase = cases.find((c) => c.id === activeId);
+
+  return (
+    <div className="er-app">
+      <style>{`
+        .er-app {
+          --ink: #1B2B36;
+          --paper: #F4F5F1;
+          --panel: #FFFFFF;
+          --line: #DCDFD5;
+          --teal: #2F5D62;
+          --teal-dark: #234649;
+          --amber: #A9691F;
+          --amber-bg: rgba(169, 105, 31, 0.12);
+          --red: #9C3B2E;
+          --red-bg: rgba(156, 59, 46, 0.1);
+          --green: #47765A;
+          --green-bg: rgba(71, 118, 90, 0.12);
+          --muted: #6B7563;
+          --muted-bg: rgba(107, 117, 99, 0.1);
+          font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+          background: var(--paper);
+          color: var(--ink);
+          min-height: 100%;
+          padding: 28px 20px 60px;
+          line-height: 1.5;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+        .er-serif { font-family: 'Lora', Georgia, 'Times New Roman', serif; }
+        .er-app * { box-sizing: border-box; }
+        .er-app .er-max { max-width: 980px; margin: 0 auto; }
+
+        .er-shared-banner {
+          max-width: 980px; margin: 0 auto 20px; display: flex; align-items: center; gap: 8px;
+          background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--teal);
+          padding: 10px 14px; font-size: 13px; color: var(--muted);
+        }
+        .er-header-row {
+          max-width: 980px; margin: 0 auto 24px; display: flex; justify-content: space-between;
+          align-items: flex-end; gap: 16px; flex-wrap: wrap;
+        }
+        .er-h1 { font-size: 28px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+        .er-h2 { font-size: 21px; font-weight: 600; margin: 2px 0 0; }
+        .er-subtitle { margin: 0; color: var(--muted); font-size: 14px; max-width: 60ch; }
+
+        .er-btn {
+          display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--ink);
+          background: var(--ink); color: #fff; padding: 9px 15px; font-size: 13.5px; font-weight: 500;
+          cursor: pointer; border-radius: 3px; font-family: inherit; transition: background .12s, opacity .12s;
+        }
+        .er-btn:hover { opacity: 0.88; }
+        .er-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .er-btn-primary { background: var(--teal); border-color: var(--teal); }
+        .er-btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+        .er-btn-danger { background: var(--red); border-color: var(--red); }
+        .er-btn-danger-ghost { color: var(--red); border-color: var(--line); }
+        .er-btn-sm { padding: 6px 10px; font-size: 12.5px; }
+        .er-btn:focus-visible, .er-input:focus-visible, .er-step-btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
+          outline: 2px solid var(--teal); outline-offset: 2px;
+        }
+
+        .er-stats-row {
+          max-width: 980px; margin: 0 auto 24px; display: grid; grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+        }
+        .er-stat {
+          background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--ink);
+          padding: 14px 16px; display: flex; flex-direction: column; gap: 2px;
+        }
+        .er-stat-accent-amber { border-left-color: var(--amber); }
+        .er-stat-accent-red { border-left-color: var(--red); }
+        .er-stat-accent-green { border-left-color: var(--green); }
+        .er-stat-value { font-size: 24px; font-weight: 600; font-family: 'Lora', serif; }
+        .er-stat-label { font-size: 12.5px; color: var(--muted); }
+
+        .er-panel {
+          max-width: 980px; margin: 0 auto 22px; background: var(--panel); border: 1px solid var(--line);
+          padding: 18px 20px;
+        }
+        .er-panel-title { font-size: 13.5px; font-weight: 600; margin: 0 0 12px; display: flex; align-items: center; gap: 6px; }
+        .er-bars { display: flex; flex-direction: column; gap: 9px; }
+        .er-bar-row { display: grid; grid-template-columns: 200px 1fr 26px; align-items: center; gap: 10px; font-size: 12.5px; }
+        .er-bar-label { color: var(--ink); }
+        .er-bar-track { background: var(--muted-bg); height: 8px; border-radius: 2px; overflow: hidden; }
+        .er-bar-fill { background: var(--teal); height: 100%; border-radius: 2px; }
+        .er-bar-count { text-align: right; color: var(--muted); }
+
+        .er-filters-row {
+          max-width: 980px; margin: 0 auto 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        }
+        .er-search {
+          display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel);
+          padding: 8px 12px; flex: 1; min-width: 220px;
+        }
+        .er-search input { border: none; outline: none; font-size: 13.5px; width: 100%; font-family: inherit; background: transparent; color: var(--ink); }
+        .er-search svg { color: var(--muted); flex-shrink: 0; }
+        .er-checkbox-inline { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); white-space: nowrap; }
+
+        .er-select-wrap { position: relative; display: inline-flex; align-items: center; }
+        .er-select { appearance: none; padding-right: 28px; cursor: pointer; }
+        .er-select-chevron { position: absolute; right: 9px; pointer-events: none; color: var(--muted); }
+
+        .er-input {
+          border: 1px solid var(--line); background: var(--panel); padding: 8px 10px; font-size: 13.5px;
+          font-family: inherit; color: var(--ink); width: 100%; border-radius: 2px;
+        }
+        .er-textarea { resize: vertical; min-height: 44px; }
+
+        .er-table-wrap { max-width: 980px; margin: 0 auto; overflow-x: auto; border: 1px solid var(--line); background: var(--panel); }
+        .er-table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 640px; }
+        .er-table th {
+          text-align: left; font-weight: 600; font-size: 11.5px; color: var(--muted); text-transform: none;
+          padding: 10px 14px; border-bottom: 1px solid var(--line); background: rgba(0,0,0,0.015);
+        }
+        .er-table td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+        .er-table tbody tr { cursor: pointer; }
+        .er-table tbody tr:hover { background: rgba(47, 93, 98, 0.05); }
+        .er-table tbody tr:last-child td { border-bottom: none; }
+        .er-mono { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12.5px; }
+        .er-empty-filter { padding: 20px; text-align: center; color: var(--muted); font-size: 13.5px; }
+
+        .er-tag { display: inline-block; padding: 2px 9px; font-size: 11.5px; font-weight: 500; border-radius: 2px; border: 1px solid transparent; }
+        .er-tag-muted { background: var(--muted-bg); color: var(--muted); border-color: rgba(0,0,0,0.06); }
+        .er-tag-amber { background: var(--amber-bg); color: var(--amber); }
+        .er-tag-red { background: var(--red-bg); color: var(--red); }
+        .er-tag-green { background: var(--green-bg); color: var(--green); }
+
+        .er-empty {
+          max-width: 980px; margin: 40px auto; text-align: center; padding: 50px 20px; border: 1px dashed var(--line);
+          display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted);
+        }
+        .er-empty-title { font-size: 18px; color: var(--ink); margin: 6px 0 0; }
+        .er-empty-body { margin: 0 0 8px; font-size: 13.5px; max-width: 40ch; }
+
+        .er-link-muted { background: none; border: none; color: var(--muted); font-size: 12.5px; cursor: pointer; padding: 0; font-family: inherit; text-decoration: underline; text-underline-offset: 2px; }
+        .er-reset-link { display: block; max-width: 980px; margin: 22px auto 0; text-align: right; }
+
+        .er-modal-overlay { position: fixed; inset: 0; background: rgba(20, 24, 20, 0.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+        .er-modal { background: var(--panel); border: 1px solid var(--line); padding: 22px; max-width: 380px; width: 100%; }
+        .er-modal-title { margin: 0 0 8px; font-size: 18px; }
+        .er-modal-body { margin: 0 0 18px; font-size: 13.5px; color: var(--muted); }
+        .er-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+        .er-wizard-header { max-width: 980px; margin: 0 auto 8px; }
+        .er-back { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+        .er-wizard-body { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 210px 1fr; gap: 28px; }
+        .er-stepper { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; position: sticky; top: 16px; align-self: start; }
+        .er-step-btn {
+          display: flex; align-items: center; gap: 9px; text-align: left; width: 100%; background: none; border: none;
+          padding: 9px 8px; font-size: 13px; color: var(--muted); cursor: pointer; font-family: inherit; border-radius: 2px;
+        }
+        .er-step-btn:hover { background: rgba(0,0,0,0.03); }
+        .er-step-btn-active { color: var(--ink); font-weight: 600; background: rgba(47, 93, 98, 0.08); }
+        .er-step-btn-done .er-step-num { background: var(--teal); color: #fff; border-color: var(--teal); }
+        .er-step-num {
+          width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line); display: flex; align-items: center;
+          justify-content: center; font-size: 11px; flex-shrink: 0; color: var(--muted);
+        }
+        .er-step-btn-active .er-step-num { border-color: var(--teal); color: var(--teal); }
+
+        .er-wizard-content { background: var(--panel); border: 1px solid var(--line); padding: 24px; }
+        .er-step-grid { display: flex; flex-direction: column; gap: 16px; }
+        .er-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .er-field { display: flex; flex-direction: column; gap: 5px; }
+        .er-field-label { font-size: 13px; font-weight: 500; }
+        .er-required { color: var(--red); margin-left: 2px; }
+        .er-field-hint { font-size: 12px; color: var(--muted); }
+
+        .er-radio-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .er-radio-pill {
+          border: 1px solid var(--line); padding: 7px 14px; font-size: 13px; border-radius: 20px; cursor: pointer;
+          display: flex; align-items: center; gap: 6px; color: var(--muted);
+        }
+        .er-radio-pill input { display: none; }
+        .er-radio-pill-active { border-color: var(--teal); color: var(--teal); background: rgba(47, 93, 98, 0.06); font-weight: 500; }
+
+        .er-match-panel { border: 1px solid var(--line); padding: 14px 16px; background: rgba(0,0,0,0.015); }
+        .er-match-heading { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+        .er-match-empty { font-size: 13px; color: var(--muted); margin: 0; }
+        .er-match-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .er-match-item { border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+        .er-match-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .er-match-check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+        .er-match-check input { margin-top: 3px; }
+        .er-match-top { display: flex; gap: 10px; align-items: center; font-size: 12px; margin-bottom: 2px; }
+        .er-match-score { color: var(--amber); font-weight: 500; }
+        .er-match-date { color: var(--muted); }
+        .er-match-desc { font-size: 13px; color: var(--ink); }
+
+        .er-wizard-nav { display: flex; justify-content: space-between; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+        .er-step-warning { font-size: 12.5px; color: var(--amber); margin: 10px 0 0; text-align: right; }
+
+        .er-review-doc { display: flex; flex-direction: column; gap: 18px; }
+        .er-review-section { border-top: 1px solid var(--line); padding-top: 14px; }
+        .er-review-heading { font-size: 12.5px; font-weight: 600; text-transform: none; color: var(--teal-dark); margin: 0 0 8px; display: flex; align-items: center; gap: 6px; }
+        .er-review-rows { display: grid; grid-template-columns: 220px 1fr; gap: 6px 14px; margin: 0; font-size: 13.5px; }
+        .er-review-rows dt { color: var(--muted); }
+        .er-review-rows dd { margin: 0; }
+
+        .er-ai-block { border: 1px solid var(--line); background: rgba(47, 93, 98, 0.03); padding: 14px 16px; }
+        .er-ai-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+        .er-ai-hint { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+        .er-ai-error { font-size: 12.5px; color: var(--red); margin: 0 0 8px; }
+        .er-spin { animation: er-spin 0.9s linear infinite; }
+        @keyframes er-spin { to { transform: rotate(360deg); } }
+
+        .er-detail-top { max-width: 980px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .er-detail-case-no { color: var(--muted); font-size: 12.5px; }
+        .er-detail-tags { display: flex; gap: 6px; margin-top: 8px; }
+        .er-detail-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .er-detail-meta { max-width: 980px; margin: 10px auto 20px; font-size: 12.5px; color: var(--muted); }
+        .er-narrative-panel { border-left: 3px solid var(--teal); }
+        .er-narrative-text { white-space: pre-wrap; font-size: 14px; margin: 0; }
+
+        .er-loading-wrap, .er-error-wrap { max-width: 980px; margin: 60px auto; text-align: center; color: var(--muted); }
+
+        @media (max-width: 760px) {
+          .er-stats-row { grid-template-columns: repeat(2, 1fr); }
+          .er-wizard-body { grid-template-columns: 1fr; }
+          .er-stepper { flex-direction: row; flex-wrap: wrap; position: static; }
+          .er-step-btn span:last-child { display: none; }
+          .er-step-btn { padding: 6px; }
+          .er-two-col { grid-template-columns: 1fr; }
+          .er-review-rows { grid-template-columns: 1fr; }
+          .er-bar-row { grid-template-columns: 110px 1fr 24px; }
+        }
+      `}</style>
+
+      <div className="er-max">
+        {status === 'loading' && (
+          <div className="er-loading-wrap"><Loader2 size={20} className="er-spin" /><p>Loading register…</p></div>
+        )}
+
+        {status === 'error' && (
+          <div className="er-error-wrap">
+            <p>Couldn't load the register.</p>
+            <button className="er-btn er-btn-primary" onClick={load}><RefreshCw size={14} /> Retry</button>
+          </div>
+        )}
+
+        {status === 'ready' && view === 'dashboard' && (
+          <Dashboard cases={cases} onNew={openNew} onOpen={openDetail} onResetAll={resetAll} />
+        )}
+
+        {status === 'ready' && view === 'wizard' && draft && (
+          <Wizard
+            draft={draft}
+            setDraft={setDraft}
+            cases={cases}
+            currentStep={currentStep}
+            setCurrentStep={setCurrentStep}
+            onSave={saveDraft}
+            onCancel={() => setView(isEditingExisting ? 'detail' : 'dashboard')}
+            isEditing={isEditingExisting}
+          />
+        )}
+
+        {status === 'ready' && view === 'detail' && activeCase && (
+          <CaseDetail
+            caseObj={activeCase}
+            cases={cases}
+            onBack={() => setView('dashboard')}
+            onEdit={() => openEdit(activeCase.id)}
+            onDelete={() => deleteCase(activeCase.id)}
+            onChangeStatus={(s) => changeStatus(activeCase.id, s)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+<script>
+  window.addEventListener("error", function (e) {
+    if (!document.getElementById("root").hasChildNodes()) {
+      document.getElementById("boot-error").style.display = "block";
+    }
+  });
+
+  (function () {
+    try {
+      var source = document.getElementById("app-source").textContent;
+      // Force the classic JSX runtime explicitly. Newer builds of
+      // @babel/standalone default to the "automatic" runtime, which emits
+      // an `import` statement that a plain (non-module) <script> cannot
+      // execute and silently breaks the whole app.
+      var compiled = Babel.transform(source, {
+        presets: [["react", { runtime: "classic" }]],
+      }).code;
+      var script = document.createElement("script");
+      script.text = compiled;
+      document.body.appendChild(script);
+    } catch (e) {
+      console.error("App failed to compile/run:", e);
+      document.getElementById("boot-error").style.display = "block";
+    }
+  })();
+</script>
+</body>
+</html>
